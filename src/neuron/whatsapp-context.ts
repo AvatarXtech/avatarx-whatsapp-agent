@@ -18,6 +18,11 @@ import {
 } from "../knowledge/studio.js";
 
 
+import type {
+  ConversationCollectedData
+} from "../conversation/conversation-types.js";
+
+
 export interface WhatsAppNeuronContext {
 
   sender:string;
@@ -29,7 +34,7 @@ export interface WhatsAppNeuronContext {
   conversationStatus:string;
 
   collectedData?:
-    Record<string,unknown>;
+    ConversationCollectedData;
 
 }
 

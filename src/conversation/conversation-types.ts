@@ -1,4 +1,3 @@
-
 export type ConversationStatus =
   | "new"
   | "greeting"
@@ -8,30 +7,25 @@ export type ConversationStatus =
   | "human_handoff"
   | "closed";
 
-
-export interface ConversationContext {
-
-  conversationId:string;
-
-  phone:string;
-
-  status:ConversationStatus;
-
-  collectedData:{
-
-    name?:string;
-
-    company?:string;
-
-    projectType?:string;
-
-    budget?:string;
-
-    deadline?:string;
-
-  };
-
-  lastMessage?:string;
-
+export interface ConversationCollectedData {
+  name?:string;
+  company?:string;
+  projectType?:string;
+  budget?:string;
+  timeline?:string;
+  deadline?:string;
+  requirement?:string;
 }
 
+export interface ConversationContext {
+  conversationId:string;
+  phone:string;
+  status:ConversationStatus;
+  collectedData:ConversationCollectedData;
+  lastMessage?:string;
+  lastIntent?:string;
+  leadId?:string;
+  clientId?:string;
+  projectId?:string;
+  humanHandoffReason?:string;
+}
