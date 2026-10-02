@@ -1,53 +1,141 @@
+export interface NormalizedMetaMessage {
 
+  from:string;
 
-export interface MetaWebhookEvent {
+  message:string;
 
+  messageId:string;
 
- from:string;
-
-
- message:string;
-
-
- timestamp:number;
-
+  timestamp:number;
 
 }
-
 
 
 export function verifyWebhook(
-
- token:string,
-
- expected:string
-
+  token:string,
+  expected:string
 ){
 
- return token===expected;
+  return Boolean(
+    token &&
+    expected &&
+    token === expected
+  );
 
 }
 
 
+export function normalizeMetaWebhook(
+  payload:unknown
+):NormalizedMetaMessage[]{
 
-export function processMetaWebhook(
 
- event:MetaWebhookEvent
+  const output:
+    NormalizedMetaMessage[] = [];
 
-){
 
- return {
+  if(
+    !payload ||
+    typeof payload !== "object"
+  ){
 
-  source:
-   "meta-whatsapp",
+    return output;
 
-  sender:
-   event.from,
+  }
 
-  message:
-   event.message
 
- };
+  const root =
+    payload as any;
+
+
+  const entries =
+    Array.isArray(root.entry)
+      ? root.entry
+      : [];
+
+
+  for(
+    const entry
+    of entries
+  ){
+
+    const changes =
+      Array.isArray(entry?.changes)
+        ? entry.changes
+        : [];
+
+
+    for(
+      const change
+      of changes
+    ){
+
+      const messages =
+        Array.isArray(
+          change?.value?.messages
+        )
+          ? change.value.messages
+          : [];
+
+
+      for(
+        const message
+        of messages
+      ){
+
+        if(
+          typeof message?.from !==
+            "string" ||
+          typeof message?.id !==
+            "string"
+        ){
+
+          continue;
+
+        }
+
+
+        const text =
+          message?.text?.body;
+
+
+        if(
+          typeof text !==
+          "string" ||
+          !text.trim()
+        ){
+
+          continue;
+
+        }
+
+
+        output.push({
+
+          from:
+            message.from,
+
+          message:
+            text,
+
+          messageId:
+            message.id,
+
+          timestamp:
+            Number(
+              message.timestamp ??
+              Date.now()
+            )
+
+        });
+
+      }
+
+    }
+
+  }
+
+
+  return output;
 
 }
-
