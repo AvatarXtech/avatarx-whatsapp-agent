@@ -51,6 +51,15 @@ export interface NeuronInferenceResult {
 }
 
 
+export interface NeuronInferenceClient {
+
+  infer(
+    request:NeuronInferenceRequest
+  ):Promise<NeuronInferenceResult>;
+
+}
+
+
 function sha256(
   value:string
 ){

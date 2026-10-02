@@ -7,8 +7,8 @@ import {
   evaluateHandoff
 } from "../control-room/handoff-manager.js";
 
-import {
-  AvatarXNeuronClient
+import type {
+  NeuronInferenceClient
 } from "../neuron/neuron-client.js";
 
 import {
@@ -46,7 +46,7 @@ export class WhatsAppAIRuntime {
 
   constructor(
     private readonly neuron:
-      AvatarXNeuronClient
+      NeuronInferenceClient
   ){}
 
   async respond(

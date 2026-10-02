@@ -1,43 +1,36 @@
-
-
 export interface MetaWhatsAppConfig {
+  phoneNumberId:string;
+  accessToken:string;
+  graphApiVersion:string;
+}
 
- phoneNumberId:string;
 
- accessToken:string;
+export function getMetaWhatsAppConfig(
+  env:NodeJS.ProcessEnv = process.env
+):MetaWhatsAppConfig {
 
- businessId:string;
+  return {
+    phoneNumberId:
+      env.WHATSAPP_PHONE_NUMBER_ID ?? "",
 
- webhookSecret:string;
+    accessToken:
+      env.WHATSAPP_ACCESS_TOKEN ?? "",
+
+    graphApiVersion:
+      env.WHATSAPP_GRAPH_API_VERSION ?? ""
+  };
 
 }
 
 
+export function isMetaWhatsAppConfigured(
+  config:MetaWhatsAppConfig
+){
 
-export function getMetaConfig():
-
-MetaWhatsAppConfig {
-
-
- return {
-
-  phoneNumberId:
-   process.env.WHATSAPP_PHONE_NUMBER_ID || "",
-
-
-  accessToken:
-   process.env.WHATSAPP_ACCESS_TOKEN || "",
-
-
-  businessId:
-   process.env.WHATSAPP_BUSINESS_ID || "",
-
-
-  webhookSecret:
-   process.env.WHATSAPP_WEBHOOK_SECRET || ""
-
- };
-
+  return Boolean(
+    config.phoneNumberId.trim() &&
+    config.accessToken.trim() &&
+    config.graphApiVersion.trim()
+  );
 
 }
-

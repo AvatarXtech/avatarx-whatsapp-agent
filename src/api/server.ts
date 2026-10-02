@@ -17,6 +17,16 @@ import {
 } from "../webhooks/meta-webhook.js";
 
 
+import {
+  MetaWhatsAppProvider
+} from "../providers/meta/meta-whatsapp-provider.js";
+
+
+import {
+  getMetaWhatsAppConfig
+} from "../providers/meta/meta-config.js";
+
+
 function sendJson(
   response:http.ServerResponse,
   status:number,
@@ -75,6 +85,12 @@ export function createProductionServer(){
   const runtime =
     new WhatsAppAIRuntime(
       neuron
+    );
+
+
+  const metaProvider =
+    new MetaWhatsAppProvider(
+      getMetaWhatsAppConfig()
     );
 
 
@@ -257,7 +273,7 @@ export function createProductionServer(){
                 `wa:${message.from}`
 
             })
-            .then(result => {
+            .then(async result => {
 
               console.log(
                 "WHATSAPP_AI_RESPONSE_READY",
@@ -272,6 +288,46 @@ export function createProductionServer(){
                     result.reason
                 }
               );
+
+
+              if(
+                metaProvider.isConfigured()
+              ){
+
+                await metaProvider.sendMessage({
+
+                  recipient:
+                    message.from,
+
+                  content:
+                    result.message
+
+                });
+
+
+                console.log(
+                  "WHATSAPP_META_RESPONSE_SENT",
+                  {
+                    recipient:
+                      message.from
+                  }
+                );
+
+              }
+              else{
+
+                console.log(
+                  "WHATSAPP_META_SEND_SKIPPED",
+                  {
+                    recipient:
+                      message.from,
+
+                    reason:
+                      "meta_credentials_not_configured"
+                  }
+                );
+
+              }
 
             })
             .catch(error => {
