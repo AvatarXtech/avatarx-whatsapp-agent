@@ -222,7 +222,14 @@ export class AvatarXNeuronClient {
                 request.requestId,
 
               "x-tenant-id":
-                request.tenantId
+                request.tenantId,
+
+              ...(process.env.AVATARX_NEURON_PROVIDER
+                ? {
+                    "x-avatarx-provider":
+                      process.env.AVATARX_NEURON_PROVIDER
+                  }
+                : {})
 
             },
 
