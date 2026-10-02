@@ -27,6 +27,12 @@ import {
 } from "../providers/meta/meta-config.js";
 
 
+import {
+  logEvent,
+  whatsappMetrics
+} from "../monitoring/index.js";
+
+
 function sendJson(
   response:http.ServerResponse,
   status:number,
@@ -126,8 +132,59 @@ export function createProductionServer(){
               service:
                 "avatarx-whatsapp-agent",
               neuron:
-                neuronHealth
+                neuronHealth,
+              metaConfigured:
+                metaProvider.isConfigured(),
+              metrics:
+                whatsappMetrics.snapshot()
             }
+          );
+
+        }
+
+
+        if(
+          request.method === "GET" &&
+          url.pathname === "/ready"
+        ){
+
+          const neuronHealth =
+            await neuron.health();
+
+
+          const ready =
+            neuronHealth.reachable === true;
+
+
+          return sendJson(
+            response,
+            ready ? 200 : 503,
+            {
+              status:
+                ready
+                  ? "ready"
+                  : "degraded",
+
+              neuron:
+                neuronHealth,
+
+              metaConfigured:
+                metaProvider.isConfigured()
+            }
+          );
+
+        }
+
+
+        if(
+          request.method === "GET" &&
+          url.pathname === "/metrics"
+        ){
+
+          return sendJson(
+            response,
+            200,
+            whatsappMetrics.snapshot()
           );
 
         }
@@ -204,6 +261,11 @@ export function createProductionServer(){
             "/webhooks/whatsapp"
         ){
 
+          whatsappMetrics.increment(
+            "webhookRequests"
+          );
+
+
           const raw =
             await readBody(
               request
@@ -237,6 +299,21 @@ export function createProductionServer(){
             normalizeMetaWebhook(
               payload
             );
+
+
+          whatsappMetrics.increment(
+            "webhookMessages",
+            messages.length
+          );
+
+
+          logEvent(
+            "whatsapp.webhook.received",
+            {
+              messageCount:
+                messages.length
+            }
+          );
 
 
           /*
@@ -275,8 +352,35 @@ export function createProductionServer(){
             })
             .then(async result => {
 
-              console.log(
-                "WHATSAPP_AI_RESPONSE_READY",
+              if(
+                result.mode === "ai"
+              ){
+
+                whatsappMetrics.increment(
+                  "aiResponses"
+                );
+
+              }
+              else if(
+                result.mode === "human"
+              ){
+
+                whatsappMetrics.increment(
+                  "humanHandoffs"
+                );
+
+              }
+              else{
+
+                whatsappMetrics.increment(
+                  "assistedHandoffs"
+                );
+
+              }
+
+
+              logEvent(
+                "whatsapp.response.ready",
                 {
                   recipient:
                     message.from,
@@ -305,8 +409,13 @@ export function createProductionServer(){
                 });
 
 
-                console.log(
-                  "WHATSAPP_META_RESPONSE_SENT",
+                whatsappMetrics.increment(
+                  "metaSendSuccess"
+                );
+
+
+                logEvent(
+                  "whatsapp.meta.sent",
                   {
                     recipient:
                       message.from
@@ -316,15 +425,21 @@ export function createProductionServer(){
               }
               else{
 
-                console.log(
-                  "WHATSAPP_META_SEND_SKIPPED",
+                whatsappMetrics.increment(
+                  "metaSendSkipped"
+                );
+
+
+                logEvent(
+                  "whatsapp.meta.send_skipped",
                   {
                     recipient:
                       message.from,
 
                     reason:
                       "meta_credentials_not_configured"
-                  }
+                  },
+                  "warn"
                 );
 
               }
@@ -332,8 +447,13 @@ export function createProductionServer(){
             })
             .catch(error => {
 
-              console.error(
-                "WHATSAPP_AI_RUNTIME_ERROR",
+              whatsappMetrics.increment(
+                "neuronErrors"
+              );
+
+
+              logEvent(
+                "whatsapp.runtime.error",
                 {
                   recipient:
                     message.from,
@@ -342,7 +462,8 @@ export function createProductionServer(){
                     error instanceof Error
                       ? error.message
                       : String(error)
-                }
+                },
+                "error"
               );
 
             });
@@ -367,9 +488,15 @@ export function createProductionServer(){
       }
       catch(error){
 
-        console.error(
-          "WHATSAPP_SERVER_ERROR",
-          error
+        logEvent(
+          "whatsapp.server.error",
+          {
+            error:
+              error instanceof Error
+                ? error.message
+                : String(error)
+          },
+          "error"
         );
 
 

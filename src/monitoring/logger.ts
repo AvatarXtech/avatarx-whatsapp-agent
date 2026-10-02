@@ -1,27 +1,54 @@
+export type LogLevel =
+  | "info"
+  | "warn"
+  | "error";
 
 
 export function logEvent(
-
- event:string,
-
- data?:unknown
-
+  event:string,
+  data:Record<string,unknown> = {},
+  level:LogLevel = "info"
 ){
 
- console.log(
+  const payload = {
+    timestamp:
+      new Date().toISOString(),
 
-  JSON.stringify({
+    service:
+      "avatarx-whatsapp-agent",
 
-   event,
+    level,
 
-   data,
+    event,
 
-   timestamp:
-    new Date()
+    ...data
+  };
 
-  })
 
- );
+  const line =
+    JSON.stringify(
+      payload
+    );
+
+
+  if(level === "error"){
+
+    console.error(line);
+
+    return;
+
+  }
+
+
+  if(level === "warn"){
+
+    console.warn(line);
+
+    return;
+
+  }
+
+
+  console.log(line);
 
 }
-

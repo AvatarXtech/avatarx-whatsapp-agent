@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "tsx src/index.ts",
     "build": "tsc",
-    "test:prod6": "tsx tests/wa-prod-6-simulation.ts"
+    "test:prod6": "tsx tests/wa-prod-6-simulation.ts",
+    "test:prod7": "tsx tests/wa-prod-7-monitoring.ts"
   },
   "keywords": [],
   "author": "",

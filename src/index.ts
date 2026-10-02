@@ -6,6 +6,11 @@ import {
 } from "./api/server.js";
 
 
+import {
+  logEvent
+} from "./monitoring/index.js";
+
+
 const port =
   Number(
     process.env.PORT ??
@@ -21,16 +26,15 @@ server.listen(
   port,
   () => {
 
-    console.log(
-      JSON.stringify({
-        event:
-          "avatarx-whatsapp-agent.started",
+    logEvent(
+      "avatarx-whatsapp-agent.started",
+      {
         port,
         neuron:
           process.env
             .AVATARX_NEURON_URL ??
           "unconfigured"
-      })
+      }
     );
 
   }
@@ -41,12 +45,11 @@ function shutdown(
   signal:string
 ){
 
-  console.log(
-    JSON.stringify({
-      event:
-        "avatarx-whatsapp-agent.shutdown",
+  logEvent(
+    "avatarx-whatsapp-agent.shutdown",
+    {
       signal
-    })
+    }
   );
 
 
